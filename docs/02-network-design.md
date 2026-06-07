@@ -15,6 +15,21 @@
 | User-Subnet | 10.0.3.0/24 | User/client systems |
 | Monitoring-Subnet | 10.0.4.0/24 | Logging, SIEM, and monitoring |
 
+## Azure Subnet Configuration
+
+The lab VNet is segmented into separate subnets to support administration, servers, user systems, and monitoring tools.
+
+![Azure Subnets](../screenshots/azure/azure-subnets.png)
+
 ## Current Server
 
 - DC01: 10.0.2.10
+- Subnet: Server-Subnet
+
+## What This Demonstrates
+
+- Azure VNet creation
+- Subnet segmentation
+- IP address planning
+- Server subnet placement
+- Basic network documentation
