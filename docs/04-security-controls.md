@@ -1,19 +1,11 @@
-# Security Controls
+## Azure Network Security
 
-## Current Controls
+The screenshot below shows DC01 network settings, private IP assignment, NSG association, and restricted inbound RDP access.
 
-- DC01 uses a static private IP address.
-- RDP access is only used for administrative setup.
-- Windows Firewall is enabled.
-- Microsoft Defender basic protection is enabled.
-- Domain authentication is active through blackscalpel.local.
+![DC01 Network Security](../screenshots/azure/dc01-network-security.png)
 
-## Planned Controls
+## Host Security Baseline
 
-- Restrict RDP access by source IP.
-- Create Network Security Group rules.
-- Configure password policy.
-- Configure account lockout policy.
-- Use least-privilege security groups.
-- Document patching process.
-- Enable audit logging.
+The screenshot below shows DC01 joined to the domain, Windows Firewall enabled, Microsoft Defender real-time protection enabled, and Remote Desktop enabled for administrative access.
+
+![DC01 Local Server Security](../screenshots/azure/dc01-local-server-security.png)
