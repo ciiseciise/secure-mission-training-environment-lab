@@ -10,13 +10,13 @@ The lab captured successful logons, failed logons, and Active Directory group me
 
 Event ID `4624` shows a successful account logon.
 
-<img src="https://raw.githubusercontent.com/ciiseciise/secure-mission-training-environment-lab/main/screenshots/monitoring/dc01-security-event-4624.png" alt="DC01 Successful Logon Event 4624" width="100%">
+<img src="https://github.com/ciiseciise/secure-mission-training-environment-lab/raw/main/screenshots/monitoring/dc01-security-event-4624.png" alt="DC01 Successful Logon Event 4624" width="100%">
 
 ## Failed Logon Event
 
 Event ID `4625` shows a failed logon attempt caused by an incorrect username or password.
 
-<img src="https://raw.githubusercontent.com/ciiseciise/secure-mission-training-environment-lab/main/screenshots/monitoring/dc01-security-event-4625.png" alt="DC01 Failed Logon Event 4625" width="100%">
+<img src="https://github.com/ciiseciise/secure-mission-training-environment-lab/raw/main/screenshots/monitoring/dc01-security-event-4625.png" alt="DC01 Failed Logon Event 4625" width="100%">
 
 ## Security Group Change Event
 
@@ -24,13 +24,13 @@ Event ID `4728` shows a user being added to a security-enabled global group.
 
 This proves that Active Directory group membership changes are being logged.
 
-<img src="https://raw.githubusercontent.com/ciiseciise/secure-mission-training-environment-lab/main/screenshots/monitoring/dc01-security-event-4728-group-change.png" alt="DC01 Group Change Event 4728" width="100%">
+<img src="https://github.com/ciiseciise/secure-mission-training-environment-lab/raw/main/screenshots/monitoring/dc01-security-event-4728-group-change.png" alt="DC01 Group Change Event 4728" width="100%">
 
 ## Skills Demonstrated
 
-- Windows Event Viewer usage
-- Security log review
-- Successful logon auditing
-- Failed logon auditing
-- Active Directory group change auditing
-- Basic incident investigation evidence collection
+* Windows Event Viewer usage
+* Security log review
+* Successful logon auditing
+* Failed logon auditing
+* Active Directory group change auditing
+* Basic incident investigation evidence collection
