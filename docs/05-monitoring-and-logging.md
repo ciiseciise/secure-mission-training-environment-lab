@@ -10,13 +10,13 @@ The lab captured successful logons, failed logons, and Active Directory group me
 
 Event ID `4624` shows a successful account logon.
 
-![DC01 Successful Logon Event 4624](/secure-mission-training-environment-lab/screenshots/monitoring/dc01-security-event-4624.png)
+<img src="https://raw.githubusercontent.com/ciiseciise/secure-mission-training-environment-lab/main/screenshots/monitoring/dc01-security-event-4624.png" alt="DC01 Successful Logon Event 4624" width="100%">
 
 ## Failed Logon Event
 
 Event ID `4625` shows a failed logon attempt caused by an incorrect username or password.
 
-![DC01 Failed Logon Event 4625](/secure-mission-training-environment-lab/screenshots/monitoring/dc01-security-event-4625.png)
+<img src="https://raw.githubusercontent.com/ciiseciise/secure-mission-training-environment-lab/main/screenshots/monitoring/dc01-security-event-4625.png" alt="DC01 Failed Logon Event 4625" width="100%">
 
 ## Security Group Change Event
 
@@ -24,7 +24,7 @@ Event ID `4728` shows a user being added to a security-enabled global group.
 
 This proves that Active Directory group membership changes are being logged.
 
-![DC01 Group Change Event 4728](/secure-mission-training-environment-lab/screenshots/monitoring/dc01-security-event-4728-group-change.png)
+<img src="https://raw.githubusercontent.com/ciiseciise/secure-mission-training-environment-lab/main/screenshots/monitoring/dc01-security-event-4728-group-change.png" alt="DC01 Group Change Event 4728" width="100%">
 
 ## Skills Demonstrated
 
