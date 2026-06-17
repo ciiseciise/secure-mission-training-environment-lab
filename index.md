@@ -22,3 +22,4 @@ The lab demonstrates practical skills relevant to systems administration, networ
 - [Monitoring and Logging](docs/05-monitoring-and-logging.md)
 - [Troubleshooting Tickets](docs/06-troubleshooting-tickets.md)
 - [Lessons Learned](docs/07-lessons-learned.md)
+- [Linux Administration](docs/08-linux-administration.md)
