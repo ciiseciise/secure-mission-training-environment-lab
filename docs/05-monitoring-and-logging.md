@@ -28,9 +28,9 @@ This proves that Active Directory group membership changes are being logged.
 
 ## Skills Demonstrated
 
-- Windows Event Viewer usage
-- Security log review
-- Successful logon auditing
-- Failed logon auditing
-- Active Directory group change auditing
-- Basic incident investigation evidence collection
+* Windows Event Viewer usage
+* Security log review
+* Successful logon auditing
+* Failed logon auditing
+* Active Directory group change auditing
+* Basic incident investigation evidence collection
