@@ -1,22 +1,36 @@
 # Monitoring and Logging
 
-## Current Status
+## Windows Security Event Logs
 
-Monitoring is planned for a later phase.
+Security logging was validated on `DC01` using Windows Event Viewer.
 
-## Planned Tools
+The lab captured successful logons, failed logons, and Active Directory group membership changes.
 
-- Windows Event Viewer
-- Wazuh SIEM
-- Linux auth logs
-- Azure activity logs
+## Successful Logon Event
 
-## Events to Monitor
+Event ID `4624` shows a successful account logon.
 
-- Failed logins
-- Successful logins
-- Account lockouts
-- Group membership changes
-- RDP access attempts
-- Firewall blocks
-- Service failures
+![DC01 Successful Logon Event 4624](../screenshots/monitoring/dc01-security-event-4624.png)
+
+## Failed Logon Event
+
+Event ID `4625` shows a failed logon attempt caused by an incorrect username or password.
+
+![DC01 Failed Logon Event 4625](../screenshots/monitoring/dc01-security-event-4625.png)
+
+## Security Group Change Event
+
+Event ID `4728` shows a user being added to a security-enabled global group.
+
+This proves that Active Directory group membership changes are being logged.
+
+![DC01 Group Change Event 4728](../screenshots/monitoring/dc01-security-event-4728-group-change.png)
+
+## Skills Demonstrated
+
+- Windows Event Viewer usage
+- Security log review
+- Successful logon auditing
+- Failed logon auditing
+- Active Directory group change auditing
+- Basic incident investigation evidence collection
