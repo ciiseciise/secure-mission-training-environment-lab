@@ -1,12 +1,12 @@
 # Backup and Disaster Recovery
 
-## DC01 OS Disk Snapshot
+## DC01 Backup Snapshot
 
-A snapshot was created for the `DC01` operating system disk to demonstrate basic backup and disaster recovery preparation.
+A snapshot was created for the `DC01` operating system disk to demonstrate basic backup and disaster recovery protection for the lab domain controller.
 
-The snapshot provides a recovery point for the domain controller OS disk in case the server becomes corrupted, misconfigured, or needs to be restored.
+This provides a recovery point that could be used if `DC01` became corrupted, misconfigured, or unavailable.
 
-## Backup Details
+## Snapshot Details
 
 * Protected system: `DC01`
 * Resource group: `RG-SecureMissionLab`
@@ -27,14 +27,27 @@ The screenshot below shows detailed snapshot properties, including source disk, 
 
 ![DC01 Snapshot Details](../screenshots/backup/backup-dc01-snapshot-details.png)
 
+## Restore Readiness Test
+
+A managed disk named `DC01-Restore-Test-Disk` was created from the snapshot to prove that the backup could be converted into a usable recovery disk.
+
+The restore test disk was not attached to a VM because the goal was to validate recovery readiness without affecting the active domain controller.
+
+## Restore Test Proof
+
+The screenshot below shows the test restore disk created from the snapshot.
+
+![DC01 Restore Test Disk](../screenshots/backup/backup-restore-test-disk.png)
+
 ## Recovery Concept
 
-If `DC01` failed or became misconfigured, the snapshot could be used to create a new managed disk and recover the server from the saved OS disk state.
+If `DC01` failed, the snapshot could be used to create a new managed disk. That disk could then be used to create a replacement VM or recover the server from the saved OS disk state.
 
 ## Skills Demonstrated
 
 * Azure disk snapshot creation
 * Backup validation
+* Restore-readiness testing
+* Managed disk creation from snapshot
 * Disaster recovery planning
-* Domain controller protection
-* Recovery point documentation
+* Domain controller recovery documentation
