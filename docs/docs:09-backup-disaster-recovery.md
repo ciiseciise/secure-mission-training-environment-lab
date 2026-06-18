@@ -1,35 +1,40 @@
-# Linux Administration
+# Backup and Disaster Recovery
 
-## Linux VM Deployment
+## DC01 OS Disk Snapshot
 
-A Linux VM named `LINUX01` was created in Azure to demonstrate basic Linux administration inside the secure mission training environment.
+A snapshot was created for the `DC01` operating system disk to demonstrate basic backup and disaster recovery preparation.
 
-## System Details
+The snapshot provides a recovery point for the domain controller OS disk in case the server becomes corrupted, misconfigured, or needs to be restored.
 
-- VM Name: LINUX01
-- OS: Ubuntu Server 24.04 LTS
-- Subnet: Admin-Subnet
-- Private IP: 10.0.1.4
-- Admin User: linuxadmin
-- SSH Access: Restricted to approved public IP only
+## Backup Details
 
-## Network Security
+* Protected system: `DC01`
+* Resource group: `RG-SecureMissionLab`
+* Snapshot name: `DC01-OSDisk-Snapshot-Phase9`
+* Source disk: `DC01_OSDisk`
+* Region: `West Europe`
+* Snapshot type: `Incremental`
+* Disk size: `127 GiB`
+* Encryption: Platform-managed key
 
-SSH access to `LINUX01` was restricted through the Azure Network Security Group so that port 22 is only accessible from the approved administrator public IP.
+## Snapshot Proof
 
-![LINUX01 Network Security](../screenshots/azure/linux01-network-security.png)
+The screenshot below shows the snapshot resource inside the lab resource group.
 
-## Basic Linux Administration Commands
+![DC01 Snapshot Resource](../screenshots/backup/backup-dc01-osdisk-snapshot.png)
 
-The screenshot below shows basic Linux administration verification commands, including hostname, active user, IP configuration, OS version, uptime, and package repository update.
+The screenshot below shows detailed snapshot properties, including source disk, size, region, and snapshot type.
 
-![LINUX01 Basic Admin Commands](../screenshots/linux/linux01-basic-admin-commands.png)
+![DC01 Snapshot Details](../screenshots/backup/backup-dc01-snapshot-details.png)
+
+## Recovery Concept
+
+If `DC01` failed or became misconfigured, the snapshot could be used to create a new managed disk and recover the server from the saved OS disk state.
 
 ## Skills Demonstrated
 
-- Linux VM deployment in Azure
-- SSH administration
-- Private IP validation
-- Ubuntu version verification
-- Package repository update
-- Network security group restriction for SSH
+* Azure disk snapshot creation
+* Backup validation
+* Disaster recovery planning
+* Domain controller protection
+* Recovery point documentation
