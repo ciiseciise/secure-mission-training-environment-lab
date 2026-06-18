@@ -1,53 +1,78 @@
-# Backup and Disaster Recovery
+# DISA STIG Assessment
 
-## DC01 Backup Snapshot
+## Purpose
 
-A snapshot was created for the `DC01` operating system disk to demonstrate basic backup and disaster recovery protection for the lab domain controller.
+This phase documents a DISA STIG review performed against `DC01`, the Windows Server 2022 domain controller in the lab.
 
-This provides a recovery point that could be used if `DC01` became corrupted, misconfigured, or unavailable.
+The goal was not to claim full DoD compliance. The goal was to demonstrate the ability to download official STIG content, review a STIG requirement, identify a finding, apply a safe remediation, and document the result.
 
-## Snapshot Details
+## Tools Used
 
-* Protected system: `DC01`
-* Resource group: `RG-SecureMissionLab`
-* Snapshot name: `DC01-OSDisk-Snapshot-Phase9`
-* Source disk: `DC01_OSDisk`
-* Region: `West Europe`
-* Snapshot type: `Incremental`
-* Disk size: `127 GiB`
-* Encryption: Platform-managed key
+* DISA STIG Viewer 3.7
+* Microsoft Windows Server 2022 STIG
+* Target system: `DC01`
+* Role: Domain Controller
+* IP address: `10.0.2.10`
 
-## Snapshot Proof
+## STIG Checklist Created
 
-The screenshot below shows the snapshot resource inside the lab resource group.
+A Windows Server 2022 STIG checklist was created for `DC01` in STIG Viewer.
 
-![DC01 Snapshot Resource](../screenshots/backup/backup-dc01-osdisk-snapshot.png)
+The checklist was configured with the target host name, IP address, and system role.
 
-The screenshot below shows detailed snapshot properties, including source disk, size, region, and snapshot type.
+![DC01 STIG Checklist Created](../screenshots/stig/stig-dc01-checklist-created.png)
 
-![DC01 Snapshot Details](../screenshots/backup/backup-dc01-snapshot-details.png)
+## Reviewed STIG Rule
 
-## Restore Readiness Test
+The reviewed rule was:
 
-A managed disk named `DC01-Restore-Test-Disk` was created from the snapshot to prove that the backup could be converted into a usable recovery disk.
+* Rule ID: `SV-278949r1141931`
+* Vulnerability ID: `V-278949`
+* STIG ID: `WN22-AU-000588`
+* Severity: `CAT II`
+* Rule title: Windows Server 2022 must be configured to audit sensitive privilege use failures.
 
-The restore test disk was not attached to a VM because the goal was to validate recovery readiness without affecting the active domain controller.
+## Finding Before Remediation
 
-## Restore Test Proof
+The rule required `Audit Sensitive Privilege Use` to audit `Failure` events.
 
-The screenshot below shows the test restore disk created from the snapshot.
+Before remediation, the setting was not configured in Group Policy.
 
-![DC01 Restore Test Disk](../screenshots/backup/backup-restore-test-disk.png)
+![Sensitive Privilege Use Before](../screenshots/stig/stig-v278949-sensitive-privilege-use-before.png)
 
-## Recovery Concept
+## Remediation Applied
 
-If `DC01` failed, the snapshot could be used to create a new managed disk. That disk could then be used to create a replacement VM or recover the server from the saved OS disk state.
+The setting was configured in the `MissionLab-Security-Baseline` GPO.
 
-## Skills Demonstrated
+Path used:
 
-* Azure disk snapshot creation
-* Backup validation
-* Restore-readiness testing
-* Managed disk creation from snapshot
-* Disaster recovery planning
-* Domain controller recovery documentation
+`Computer Configuration → Policies → Windows Settings → Security Settings → Advanced Audit Policy Configuration → System Audit Policies → Privilege Use → Audit Sensitive Privilege Use`
+
+The policy was configured to audit:
+
+* Failure events: Enabled
+* Success events: Not selected
+
+![Sensitive Privilege Use After](../screenshots/stig/stig-v278949-sensitive-privilege-use-after.png)
+
+## STIG Viewer Result
+
+After remediation, the rule was marked as `NotAFinding` in STIG Viewer with a comment documenting the fix.
+
+![STIG Rule Not a Finding](../screenshots/stig/stig-v278949-not-a-finding.png)
+
+## What This Demonstrates
+
+This lab demonstrates basic STIG workflow:
+
+* Downloading official DISA STIG content
+* Creating a STIG checklist for a target system
+* Reviewing a STIG rule
+* Identifying a finding
+* Applying a safe Group Policy remediation
+* Documenting the result in STIG Viewer
+* Preserving screenshot evidence for audit-style review
+
+## Important Note
+
+This is a lab-based STIG assessment example. It does not claim full Windows Server 2022 STIG compliance. Full compliance would require reviewing all applicable rules, documenting exceptions, validating mission impact, and completing formal approval or risk acceptance.
