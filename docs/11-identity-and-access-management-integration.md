@@ -1,264 +1,200 @@
-# DISA STIG Assessment and Remediation
+# 11 - Identity and Access Management Integration
 
-This phase documents a lab-based DISA STIG assessment and remediation workflow for the `DC01` Windows Server 2022 domain controller in the Secure Mission Training Environment.
+## Objective
 
-The goal was to demonstrate how a system administrator can identify STIG findings, apply security baseline remediation, verify Group Policy application, and validate improvement using DISA SCAP Compliance Checker.
+This phase integrated Active Directory with Keycloak to build a basic enterprise Identity and Access Management workflow. The goal was to prove that Active Directory users and groups could be synchronized into an identity provider, authenticated through OIDC, and used to access a protected internal mission application.
 
-> This lab does not represent formal DoD authorization, ATO approval, or full production compliance. It demonstrates a practical STIG assessment, remediation, and validation workflow in a controlled lab environment.
+## Architecture
 
----
-
-## System Assessed
-
-| Item                   | Value                              |
-| ---------------------- | ---------------------------------- |
-| Server                 | `DC01`                             |
-| Role                   | Primary Domain Controller          |
-| Domain                 | `blackscalpel.local`               |
-| Operating System       | Windows Server 2022                |
-| Private IP             | `10.0.2.10`                        |
-| STIG Baseline          | Microsoft Windows Server 2022 STIG |
-| STIG Version / Release | Version 2, Release 8               |
-| SCAP Tool              | SCAP Compliance Checker 5.14.1     |
-
----
-
-## Manual STIG Checklist Review
-
-I installed DISA STIG Viewer and imported the Microsoft Windows Server 2022 STIG benchmark.
-
-A checklist was created for `DC01` using the Windows Server 2022 STIG baseline.
-
-Checklist location on the server:
-
-`C:\STIG\DC01\DC01-Windows-Server-2022-STIG.ckl`
-
-The checklist identified `DC01` as a Windows Server 2022 domain controller and loaded the applicable STIG rule set for review.
-
-![STIG checklist created](../screenshots/stig/stig-dc01-checklist-created.png)
-
----
-
-## Example Manual Finding Reviewed
-
-One manual STIG item reviewed was:
-
-| Field            | Value                                                                            |
-| ---------------- | -------------------------------------------------------------------------------- |
-| Vulnerability ID | `V-278949`                                                                       |
-| Rule ID          | `SV-278949r1141931`                                                              |
-| STIG ID          | `WN22-AU-000588`                                                                 |
-| Severity         | CAT II                                                                           |
-| Rule Title       | Windows Server 2022 must be configured to audit sensitive privilege use failures |
-
-The initial review showed that `Audit Sensitive Privilege Use` was not configured for failure auditing.
-
-![Sensitive privilege use before remediation](../screenshots/stig/stig-v278949-sensitive-privilege-use-before.png)
-
----
-
-## Manual Remediation Performed
-
-The setting was remediated through Group Policy.
-
-Policy path:
-
-`Computer Configuration → Policies → Windows Settings → Security Settings → Advanced Audit Policy Configuration → System Audit Policies → Privilege Use → Audit Sensitive Privilege Use`
-
-Configured setting:
-
-* `Configure the following audit events`: Enabled
-* `Failure`: Enabled
-* `Success`: Not enabled
-
-![Sensitive privilege use after remediation](../screenshots/stig/stig-v278949-sensitive-privilege-use-after.png)
-
-After remediation, the finding was marked as `NotAFinding` in STIG Viewer with the following comment:
-
-`Configured Audit Sensitive Privilege Use to audit Failure events in the MissionLab-Security-Baseline GPO.`
-
-![Sensitive privilege use marked not a finding](../screenshots/stig/stig-v278949-not-a-finding.png)
-
----
-
-## Baseline Automated SCAP Scan
-
-After completing the manual review example, I used DISA SCAP Compliance Checker to run an automated Windows Server 2022 STIG scan against `DC01`.
-
-The baseline scan was run before applying the DISA Domain Controller STIG GPO.
-
-Baseline SCC result:
-
-| Metric            | Result                                            |
-| ----------------- | ------------------------------------------------- |
-| Tool              | SCAP Compliance Checker 5.14.1                    |
-| Target            | `DC01`                                            |
-| Content           | Microsoft Windows Server 2022 STIG SCAP Benchmark |
-| Compliance Score  | `39.22%`                                          |
-| Compliance Status | `RED`                                             |
-| Pass              | `80`                                              |
-| Fail              | `124`                                             |
-| Not Applicable    | `13`                                              |
-| Total Checked     | `217`                                             |
-| Errors            | `0`                                               |
-
-![Baseline SCC scan completed](../screenshots/stig/scap-scc-scan-completed.png)
-
-![Baseline SCC results summary](../screenshots/stig/scap-scc-results-summary.png)
-
-![Baseline SCC non-compliance report](../screenshots/stig/scap-scc-noncompliance-report.png)
-
----
-
-## Recovery Checkpoint Before Applying DISA GPO
-
-Before applying the DISA Domain Controller STIG GPO, I created a fresh Azure recovery checkpoint.
-
-This included:
-
-* A new OS disk snapshot
-* A restore-test disk created from that snapshot
-* Verification that the restore disk deployed successfully
-
-The purpose was to prove that the domain controller could be recovered if the DISA GPO broke authentication, RDP access, domain controller behavior, or other system functions.
-
-Recovery resources created:
-
-| Resource                          | Purpose                                            |
-| --------------------------------- | -------------------------------------------------- |
-| `DC01-Pre-STIG-GPO-Snapshot`      | Clean rollback point before applying DISA STIG GPO |
-| `DC01-Pre-STIG-Restore-Test-Disk` | Restore validation disk created from the snapshot  |
-
-![Pre-STIG snapshot and restore disk proof](../screenshots/backup/backup-pre-stig-snapshot-and-restore-disk-proof.png)
-
-The restore-test disk was deleted after validation to reduce cost. The snapshot was retained as the rollback point.
-
----
-
-## DISA Domain Controller STIG GPO Import
-
-I downloaded the official DISA STIG GPO package and selected the Windows Server 2022 Domain Controller baseline.
-
-The correct GPO backup selected was:
-
-`DoD WinSvr 2022 DC STIG Comp v2r8`
-
-The Member Server GPO was not used for `DC01`.
-
-The imported test GPO was named:
-
-`DoD-WinSvr-2022-DC-STIG-v2r8-Test`
-
-The GPO was linked only to the `Domain Controllers` OU so it applied to `DC01` and not broadly across the entire domain.
-
-Final GPO link placement:
-
-| OU                   | Linked GPO                          |
-| -------------------- | ----------------------------------- |
-| `Domain Controllers` | `DoD-WinSvr-2022-DC-STIG-v2r8-Test` |
-
-The GPO was placed above the default domain controller policy in link order, but it was not enforced.
-
----
-
-## Group Policy Application Verification
-
-After importing and linking the DISA Domain Controller STIG GPO, I forced policy application on `DC01`.
-
-Command used:
-
-```cmd
-gpupdate /force
+```text
+Active Directory
+    ↓ LDAP federation
+Keycloak IAM Realm
+    ↓ OIDC client
+OAuth2 Proxy
+    ↓ authenticated access
+Mission Training App
 ```
 
-Then I verified applied computer policies using:
+## Completed Work
 
-```cmd
-gpresult /r /scope computer
+### 1. Active Directory IAM Groups
+
+Created IAM-focused Active Directory security groups for role-based access control.
+
+Groups created:
+
+```text
+IAM-Users
+IAM-Admins
+App-ReadOnly
+App-Privileged
 ```
 
-The result confirmed that the DISA Domain Controller STIG GPO applied successfully to `DC01`.
+![AD IAM Groups](../screenshots/iam/iam-ad-security-groups-created.png)
 
-Applied computer GPOs included:
+### 2. LDAP Bind Service Account
 
-* `DoD-WinSvr-2022-DC-STIG-v2r8-Test`
-* `Default Domain Controllers Policy`
-* `MissionLab-Securtiy-Baseline`
-* `Default Domain Policy`
+Created a dedicated LDAP bind service account for Keycloak to read users and groups from Active Directory.
 
-![DISA DC STIG GPO applied in gpresult](../screenshots/stig/stig-disa-gpo-gpresult-applied.png)
+Service account:
 
----
+```text
+svc-ldap-bind
+```
 
-## Post-GPO Automated SCAP Scan
+The bind account was tested successfully from PowerShell before being used in Keycloak.
 
-After applying the DISA Domain Controller STIG GPO, I reran the SCC scan against `DC01`.
+![LDAP Bind Test](../screenshots/iam/iam-ldap-bind-test-success.png)
 
-Post-GPO SCC result:
+### 3. Linux-to-AD Connectivity
 
-| Metric            | Result                                            |
-| ----------------- | ------------------------------------------------- |
-| Tool              | SCAP Compliance Checker 5.14.1                    |
-| Target            | `DC01`                                            |
-| Content           | Microsoft Windows Server 2022 STIG SCAP Benchmark |
-| Compliance Score  | `96.08%`                                          |
-| Compliance Status | `GREEN`                                           |
-| Pass              | `196`                                             |
-| Fail              | `8`                                               |
-| Not Applicable    | `13`                                              |
-| Total Checked     | `217`                                             |
-| Errors            | `0`                                               |
+Verified that LINUX01 could reach the domain controller and connect to LDAP over port 389.
 
-![Post-GPO SCC score 96.08 green](../screenshots/stig/scap-scc-post-gpo-score-96-green.png)
+![Linux LDAP Connectivity](../screenshots/iam/iam-linux01-dc01-network-and-ldap-port-success.png)
 
----
+### 4. Keycloak Deployment
 
-## Before and After Result
+Deployed Keycloak in Docker on LINUX01 and confirmed access to the Keycloak admin console.
 
-| Scan Phase                           |    Score | Status  |  Pass |  Fail |
-| ------------------------------------ | -------: | ------- | ----: | ----: |
-| Baseline scan before DISA GPO        | `39.22%` | `RED`   |  `80` | `124` |
-| Post-GPO scan after DISA DC STIG GPO | `96.08%` | `GREEN` | `196` |   `8` |
+![Keycloak Admin Login](../screenshots/iam/iam-keycloak-admin-console-login-success.png)
 
-The SCC compliance score improved from `39.22% RED` to `96.08% GREEN`.
+Created the dedicated IAM realm:
 
----
+```text
+blackscalpel
+```
 
-## Skills Demonstrated
+![Keycloak Realm Created](../screenshots/iam/iam-keycloak-blackscalpel-realm-created.png)
 
-This phase demonstrated the following system administration and security skills:
+### 5. Active Directory User Federation
 
-* DISA STIG Viewer usage
-* Windows Server 2022 STIG checklist creation
-* Manual STIG finding review
-* Group Policy based remediation
-* Advanced audit policy configuration
-* DISA SCAP Compliance Checker usage
-* Baseline vulnerability/compliance scanning
-* DISA GPO package import
-* Domain Controller GPO scoping
-* Group Policy link order management
-* `gpupdate` and `gpresult` validation
-* Azure snapshot-based rollback planning
-* Pre/post remediation compliance comparison
-* Risk-aware security hardening workflow
+Configured Keycloak LDAP federation against Active Directory.
 
----
+LDAP source:
 
-## Result Summary
+```text
+ldap://10.0.2.10:389
+```
 
-This phase demonstrated a complete STIG hardening workflow:
+Users DN:
 
-1. Created a Windows Server 2022 STIG checklist
-2. Reviewed and remediated a manual CAT II audit policy finding
-3. Ran a baseline SCC scan
-4. Recorded the initial `39.22% RED` score
-5. Created a rollback checkpoint using Azure snapshot and restore-test disk
-6. Imported the DISA Windows Server 2022 Domain Controller STIG GPO
-7. Linked the GPO only to the `Domain Controllers` OU
-8. Forced policy application using `gpupdate /force`
-9. Verified applied GPOs using `gpresult /r /scope computer`
-10. Reran SCC validation
-11. Confirmed improvement to `96.08% GREEN`
+```text
+OU=MissionLab-Users,DC=blackscalpel,DC=local
+```
 
-This does not claim production compliance or formal authorization. It shows hands-on experience with STIG assessment, GPO remediation, automated validation, and rollback planning in a domain controller lab environment.
+Bind DN:
+
+```text
+CN=svc-ldap-bind,OU=MissionLab-ServiceAccounts,DC=blackscalpel,DC=local
+```
+
+Confirmed LDAP connection and authentication testing.
+
+![LDAP Connection Success](../screenshots/iam/iam-keycloak-ldap-connection-success.png)
+
+![LDAP Authentication Success](../screenshots/iam/iam-keycloak-ldap-authentication-success.png)
+
+### 6. AD User Synchronization
+
+Synchronized Active Directory users into Keycloak.
+
+Synced users included:
+
+```text
+tuser1
+helpdesk1
+```
+
+![AD User Sync](../screenshots/iam/iam-keycloak-ad-user-sync-success.png)
+
+![tuser1 Visible](../screenshots/iam/iam-keycloak-tuser1-ad-user-visible.png)
+
+![helpdesk1 Visible](../screenshots/iam/iam-keycloak-helpdesk1-ad-user-visible.png)
+
+### 7. AD Group Synchronization
+
+Configured an LDAP group mapper and synchronized Active Directory security groups into Keycloak.
+
+![AD Group Sync](../screenshots/iam/iam-keycloak-ad-groups-sync-success.png)
+
+![AD Groups Visible](../screenshots/iam/iam-keycloak-ad-groups-visible.png)
+
+### 8. Group-Based Access Mapping
+
+Mapped AD users into IAM access groups.
+
+Example mappings:
+
+```text
+tuser1 → IAM-Users, App-ReadOnly
+helpdesk1 → IAM-Users, IAM-Admins, App-Privileged
+```
+
+![AD User Group Membership](../screenshots/iam/iam-ad-users-added-to-access-groups.png)
+
+![IAM Users Group](../screenshots/iam/iam-keycloak-iam-users-group-members.png)
+
+![IAM Admins Group](../screenshots/iam/iam-keycloak-iam-admins-group-members.png)
+
+### 9. AD-Backed Keycloak Login
+
+Confirmed that Active Directory users could authenticate through Keycloak using AD credentials.
+
+![tuser1 Keycloak Login](../screenshots/iam/iam-keycloak-tuser1-ad-login-success.png)
+
+![helpdesk1 Keycloak Login](../screenshots/iam/iam-keycloak-helpdesk1-ad-login-success.png)
+
+### 10. OIDC Client and Protected Mission App
+
+Created an OIDC client for the mission application.
+
+Client ID:
+
+```text
+mission-app
+```
+
+Configured OAuth2 Proxy to protect an internal Nginx-based mission training app.
+
+Final access flow:
+
+```text
+User opens mission app
+→ OAuth2 Proxy redirects to Keycloak
+→ Keycloak authenticates AD user
+→ OAuth2 Proxy grants access
+→ Mission Training App loads successfully
+```
+
+![Mission App SSO Success](../screenshots/iam/iam-mission-app-sso-login-success.png)
+
+### 11. Container Runtime Proof
+
+Final Docker containers:
+
+```text
+keycloak
+mission-app
+mission-app-proxy
+```
+
+![Final IAM Containers](../screenshots/iam/iam-final-containers-running-keycloak-app-proxy.png)
+
+## Result
+
+This phase proved a working IAM integration path:
+
+```text
+Active Directory user and group identity
+→ LDAP federation into Keycloak
+→ OIDC authentication
+→ OAuth2 Proxy enforcement
+→ protected internal application access
+```
+
+This demonstrates practical experience with identity federation, LDAP, OIDC, SSO, role-based access concepts, and containerized IAM infrastructure.
+
+## Security Note
+
+Client secrets were used only for lab testing. Any screenshot exposing secrets must not be committed to the repository. Secrets should be regenerated before final publication.
