@@ -26,4 +26,4 @@ The lab demonstrates practical skills relevant to systems administration, networ
 - [Backup and Disaster Recovery](docs/09-backup-disaster-recovery.md)
 - [DISA STIG Assessment](docs/10-disa-stig-assessment.md)
 - [Identity and Access Management Integration](docs/11-identity-and-access-management-integration.md)
-- [12 - Keycloak MFA Enforcement](docs/12-keycloak-mfa-enforcement.md)
+- [Keycloak MFA Enforcement](docs/12-keycloak-mfa-enforcement.md)
