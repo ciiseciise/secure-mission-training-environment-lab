@@ -1,200 +1,68 @@
-# 11 - Identity and Access Management Integration
+# 12 - Keycloak MFA Enforcement
 
 ## Objective
 
-This phase integrated Active Directory with Keycloak to build a basic enterprise Identity and Access Management workflow. The goal was to prove that Active Directory users and groups could be synchronized into an identity provider, authenticated through OIDC, and used to access a protected internal mission application.
-
-## Architecture
-
-```text
-Active Directory
-    ↓ LDAP federation
-Keycloak IAM Realm
-    ↓ OIDC client
-OAuth2 Proxy
-    ↓ authenticated access
-Mission Training App
-```
+This phase added multi-factor authentication to the AD-backed Keycloak login flow. The goal was to require an Active Directory user to enroll an OTP authenticator before accessing the protected mission application.
 
 ## Completed Work
 
-### 1. Active Directory IAM Groups
+### 1. Enabled OTP Required Action
 
-Created IAM-focused Active Directory security groups for role-based access control.
-
-Groups created:
+Enabled the Keycloak required action for OTP enrollment.
 
 ```text
-IAM-Users
-IAM-Admins
-App-ReadOnly
-App-Privileged
+Realm: blackscalpel
+Authentication → Required actions
+Configure OTP: Enabled
+Default action: Off
 ```
 
-![AD IAM Groups](../screenshots/iam/iam-ad-security-groups-created.png)
+![MFA Required Action Enabled](../screenshots/iam/iam-keycloak-mfa-required-action-enabled.png)
 
-### 2. LDAP Bind Service Account
+### 2. Assigned MFA Enrollment to AD User
 
-Created a dedicated LDAP bind service account for Keycloak to read users and groups from Active Directory.
-
-Service account:
+Assigned the `Configure OTP` required action to the AD-synced user `tuser1`.
 
 ```text
-svc-ldap-bind
+User: tuser1
+Required user action: Configure OTP
 ```
 
-The bind account was tested successfully from PowerShell before being used in Keycloak.
+![tuser1 OTP Required Action](../screenshots/iam/iam-keycloak-tuser1-configure-otp-required-redacted.png)
 
-![LDAP Bind Test](../screenshots/iam/iam-ldap-bind-test-success.png)
+The original QR-code screenshot was not committed because the QR code contains the OTP seed secret.
 
-### 3. Linux-to-AD Connectivity
+### 3. Completed Mobile Authenticator Enrollment
 
-Verified that LINUX01 could reach the domain controller and connect to LDAP over port 389.
-
-![Linux LDAP Connectivity](../screenshots/iam/iam-linux01-dc01-network-and-ldap-port-success.png)
-
-### 4. Keycloak Deployment
-
-Deployed Keycloak in Docker on LINUX01 and confirmed access to the Keycloak admin console.
-
-![Keycloak Admin Login](../screenshots/iam/iam-keycloak-admin-console-login-success.png)
-
-Created the dedicated IAM realm:
+The user enrolled a mobile authenticator device during login.
 
 ```text
-blackscalpel
+Device: tuser1-mobile-mfa
+Credential type: OTP
 ```
 
-![Keycloak Realm Created](../screenshots/iam/iam-keycloak-blackscalpel-realm-created.png)
+### 4. Verified MFA-Protected Application Access
 
-### 5. Active Directory User Federation
+After password authentication and OTP verification, the user was redirected to the protected mission application.
 
-Configured Keycloak LDAP federation against Active Directory.
+![Mission App MFA Login Success](../screenshots/iam/iam-mission-app-mfa-login-success.png)
 
-LDAP source:
+### 5. Verified OTP Credential in Keycloak
 
-```text
-ldap://10.0.2.10:389
-```
+Confirmed that Keycloak registered the OTP credential for the AD-backed user.
 
-Users DN:
-
-```text
-OU=MissionLab-Users,DC=blackscalpel,DC=local
-```
-
-Bind DN:
-
-```text
-CN=svc-ldap-bind,OU=MissionLab-ServiceAccounts,DC=blackscalpel,DC=local
-```
-
-Confirmed LDAP connection and authentication testing.
-
-![LDAP Connection Success](../screenshots/iam/iam-keycloak-ldap-connection-success.png)
-
-![LDAP Authentication Success](../screenshots/iam/iam-keycloak-ldap-authentication-success.png)
-
-### 6. AD User Synchronization
-
-Synchronized Active Directory users into Keycloak.
-
-Synced users included:
-
-```text
-tuser1
-helpdesk1
-```
-
-![AD User Sync](../screenshots/iam/iam-keycloak-ad-user-sync-success.png)
-
-![tuser1 Visible](../screenshots/iam/iam-keycloak-tuser1-ad-user-visible.png)
-
-![helpdesk1 Visible](../screenshots/iam/iam-keycloak-helpdesk1-ad-user-visible.png)
-
-### 7. AD Group Synchronization
-
-Configured an LDAP group mapper and synchronized Active Directory security groups into Keycloak.
-
-![AD Group Sync](../screenshots/iam/iam-keycloak-ad-groups-sync-success.png)
-
-![AD Groups Visible](../screenshots/iam/iam-keycloak-ad-groups-visible.png)
-
-### 8. Group-Based Access Mapping
-
-Mapped AD users into IAM access groups.
-
-Example mappings:
-
-```text
-tuser1 → IAM-Users, App-ReadOnly
-helpdesk1 → IAM-Users, IAM-Admins, App-Privileged
-```
-
-![AD User Group Membership](../screenshots/iam/iam-ad-users-added-to-access-groups.png)
-
-![IAM Users Group](../screenshots/iam/iam-keycloak-iam-users-group-members.png)
-
-![IAM Admins Group](../screenshots/iam/iam-keycloak-iam-admins-group-members.png)
-
-### 9. AD-Backed Keycloak Login
-
-Confirmed that Active Directory users could authenticate through Keycloak using AD credentials.
-
-![tuser1 Keycloak Login](../screenshots/iam/iam-keycloak-tuser1-ad-login-success.png)
-
-![helpdesk1 Keycloak Login](../screenshots/iam/iam-keycloak-helpdesk1-ad-login-success.png)
-
-### 10. OIDC Client and Protected Mission App
-
-Created an OIDC client for the mission application.
-
-Client ID:
-
-```text
-mission-app
-```
-
-Configured OAuth2 Proxy to protect an internal Nginx-based mission training app.
-
-Final access flow:
-
-```text
-User opens mission app
-→ OAuth2 Proxy redirects to Keycloak
-→ Keycloak authenticates AD user
-→ OAuth2 Proxy grants access
-→ Mission Training App loads successfully
-```
-
-![Mission App SSO Success](../screenshots/iam/iam-mission-app-sso-login-success.png)
-
-### 11. Container Runtime Proof
-
-Final Docker containers:
-
-```text
-keycloak
-mission-app
-mission-app-proxy
-```
-
-![Final IAM Containers](../screenshots/iam/iam-final-containers-running-keycloak-app-proxy.png)
+![OTP Credential Registered](../screenshots/iam/iam-keycloak-tuser1-otp-credential-registered.png)
 
 ## Result
 
-This phase proved a working IAM integration path:
+This phase verified the following authentication path:
 
 ```text
-Active Directory user and group identity
-→ LDAP federation into Keycloak
-→ OIDC authentication
-→ OAuth2 Proxy enforcement
-→ protected internal application access
+Active Directory user
+→ Keycloak LDAP federation
+→ password authentication
+→ OTP enrollment
+→ MFA verification
+→ OAuth2 Proxy
+→ protected mission app access
 ```
-
-This demonstrates practical experience with identity federation, LDAP, OIDC, SSO, role-based access concepts, and containerized IAM infrastructure.
-
-## Security Note
-
-Client secrets were used only for lab testing. Any screenshot exposing secrets must not be committed to the repository. Secrets should be regenerated before final publication.
