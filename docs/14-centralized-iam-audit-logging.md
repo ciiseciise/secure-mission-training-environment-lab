@@ -1,134 +1,121 @@
-# 13 - IAM Lifecycle Automation
+# 14 - Centralized IAM Audit Logging
 
 ## Objective
 
-This phase automated basic IAM user lifecycle tasks in Active Directory and verified that the changes synchronized into Keycloak.
+This phase centralized IAM-related audit evidence from Keycloak, OAuth2 Proxy, and Active Directory into a single audit log collection folder.
 
-The goal was to prove both onboarding and offboarding workflows:
-
-```text
-Onboarding → create user, enable account, assign access groups, sync to Keycloak
-Offboarding → remove access groups, disable account, sync removal to Keycloak
-```
+The goal was to collect authentication, access, and directory security evidence from multiple systems used in the lab.
 
 ## Completed Work
 
-### 1. Verified IAM OUs and Groups
+### 1. Created Central Audit Folder Structure
 
-Confirmed the existing Active Directory OUs used for the lab.
-
-```text
-MissionLab-Users
-MissionLab-Computers
-MissionLab-Groups
-MissionLab-ServiceAccounts
-```
-
-Confirmed IAM and application access groups.
+Created a centralized log collection folder on LINUX01.
 
 ```text
-IAM-Users
-IAM-Admins
-App-ReadOnly
-App-Privileged
+/home/linuxadmin/mission-audit-logs
 ```
 
-### 2. Created IAM Onboarding Script
-
-Created a PowerShell onboarding script at:
+Subfolders created:
 
 ```text
-C:\MissionLab\IAM-Automation\Onboard-IAMUser.ps1
+keycloak
+oauth2-proxy
+ad
 ```
 
-The script created a new AD user:
+![Audit Folder Structure](../screenshots/iam/iam-audit-linux-log-collector-folders-created.png)
+
+### 2. Exported Keycloak and OAuth2 Proxy Logs
+
+Exported recent logs from the Keycloak and OAuth2 Proxy Docker containers.
 
 ```text
-User: jreed1
-Name: Jordan Reed
-OU: MissionLab-Users
-Enabled: True
-Groups: IAM-Users, App-ReadOnly
+keycloak/keycloak-last24h.log
+oauth2-proxy/oauth2-proxy-last24h.log
 ```
 
-![IAM Onboarding Script Success](../screenshots/iam/iam-lifecycle-onboarding-script-success.png)
+![Keycloak and OAuth2 Logs Exported](../screenshots/iam/iam-audit-keycloak-oauth2-logs-exported.png)
 
-### 3. Verified Keycloak User Synchronization
+### 3. Captured Live OAuth2 Proxy Authentication Events
 
-After running the onboarding script, the AD user was synchronized into Keycloak through LDAP federation.
+Started live log collection for OAuth2 Proxy and captured the protected application access flow.
+
+Events observed:
 
 ```text
-Keycloak user: jreed1
-Source: BlackScalpel AD LDAP
+403 = unauthenticated request blocked
+302 = redirect to Keycloak login
+AuthSuccess = user authenticated through OAuth2
+200 = protected app loaded successfully
 ```
 
-![jreed1 Keycloak Sync Success](../screenshots/iam/iam-lifecycle-jreed1-keycloak-sync-success.png)
+![OAuth2 Proxy Live Auth Success](../screenshots/iam/iam-audit-oauth2-proxy-live-auth-success.png)
 
-### 4. Verified Keycloak Group Mapping
+### 4. Exported Active Directory Security Events
 
-Confirmed that the AD group memberships synchronized into Keycloak.
+Exported Active Directory security events from DC01 into a CSV file.
 
 ```text
-jreed1 groups:
-App-ReadOnly
-IAM-Users
+C:\MissionLab\Audit-Logs\ad-security-iam-events-last7d.csv
 ```
 
-![jreed1 Keycloak Groups](../screenshots/iam/iam-lifecycle-jreed1-keycloak-groups-success.png)
+Events included successful logons and privileged security operations.
 
-### 5. Created IAM Offboarding Script
+![AD Security Events Exported](../screenshots/iam/iam-audit-ad-security-events-exported.png)
 
-Created a PowerShell offboarding script at:
+### 5. Copied AD Events to Linux Collector
+
+Copied the AD security event CSV into the Linux audit collection folder.
 
 ```text
-C:\MissionLab\IAM-Automation\Offboard-IAMUser.ps1
+/home/linuxadmin/mission-audit-logs/ad/ad-security-iam-events-last7d.csv
 ```
 
-The script removed access groups and disabled the AD user.
+![AD Events Copied to Linux](../screenshots/iam/iam-audit-ad-events-copied-to-linux-collector.png)
+
+### 6. Created Central Audit Summary
+
+Created a plain-text audit summary describing the collected log sources and evidence.
 
 ```text
-User: jreed1
-Enabled: False
-Groups removed: IAM-Users, App-ReadOnly
+/home/linuxadmin/mission-audit-logs/audit-summary.txt
 ```
 
-![IAM Offboarding Script Success](../screenshots/iam/iam-lifecycle-offboarding-script-success.png)
+Verified the centralized audit folder contained Keycloak, OAuth2 Proxy, AD, filtered event, and summary files.
 
-### 6. Verified Access Removal in Keycloak
+![Central Log Collector Complete](../screenshots/iam/iam-audit-central-log-collector-complete.png)
 
-After syncing Keycloak again, the user no longer had application access groups.
+### 7. Created Filtered IAM Event Report
+
+Created a filtered report for IAM-related authentication and access events.
 
 ```text
-jreed1 groups: No groups
+/home/linuxadmin/mission-audit-logs/iam-auth-events-filtered.txt
 ```
 
-![jreed1 Access Removed](../screenshots/iam/iam-lifecycle-jreed1-keycloak-access-removed.png)
+The filtered report included login activity, blocked access, redirects, callback events, authentication success, and error evidence.
 
-### 7. Verified Disabled User Login Blocked
+![Filtered Auth Events Report](../screenshots/iam/iam-audit-filtered-auth-events-report.png)
 
-Tested the disabled user against the protected mission application.
+### 8. Created Audit Folder README
+
+Created a README file inside the audit collection folder explaining the purpose and contents of the log collection.
 
 ```text
-User: jreed1
-Result: Login blocked
+/home/linuxadmin/mission-audit-logs/README.md
 ```
 
-![Disabled User Login Blocked](../screenshots/iam/iam-lifecycle-disabled-user-login-blocked.png)
+![Audit README Created](../screenshots/iam/iam-audit-log-collector-readme-created.png)
 
 ## Result
 
-This phase verified the IAM lifecycle flow:
+This phase verified the centralized IAM audit flow:
 
 ```text
-PowerShell automation
-→ Active Directory account creation
-→ AD group assignment
-→ Keycloak LDAP synchronization
-→ application access granted
-
-PowerShell offboarding
-→ AD group removal
-→ account disabled
-→ Keycloak access removed
-→ login blocked
+Keycloak authentication logs
+→ OAuth2 Proxy access logs
+→ Active Directory Security events
+→ Linux audit collection folder
+→ filtered IAM event report
 ```
