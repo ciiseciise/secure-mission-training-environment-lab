@@ -28,3 +28,4 @@ The lab demonstrates practical skills relevant to systems administration, networ
 - [Identity and Access Management Integration](docs/11-identity-and-access-management-integration.md)
 - [Keycloak MFA Enforcement](docs/12-keycloak-mfa-enforcement.md)
 - [IAM Lifecycle Automation](docs/13-iam-lifecycle-automation.md)
+- [Centralized IAM Audit Logging](docs/14-centralized-iam-audit-logging.md)
