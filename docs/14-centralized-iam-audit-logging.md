@@ -1,121 +1,170 @@
-# 14 - Centralized IAM Audit Logging
+# 15 - SAML 2.0 Federation
 
 ## Objective
 
-This phase centralized IAM-related audit evidence from Keycloak, OAuth2 Proxy, and Active Directory into a single audit log collection folder.
+This phase added SAML 2.0 federation to the lab. The goal was to prove that Keycloak could act as a SAML Identity Provider and generate a signed SAML response for an AD-backed user.
 
-The goal was to collect authentication, access, and directory security evidence from multiple systems used in the lab.
+## Concept
+
+SAML federation uses an Identity Provider and a Service Provider.
+
+```text
+Identity Provider: Keycloak
+Service Provider: Mission SAML App
+User source: Active Directory through LDAP federation
+```
+
+Basic flow:
+
+```text
+User opens SAML login URL
+→ Keycloak authenticates the AD-backed user
+→ Keycloak generates a signed SAML response
+→ Browser posts the SAML response to the app ACS endpoint
+→ App receives and stores the decoded assertion
+```
 
 ## Completed Work
 
-### 1. Created Central Audit Folder Structure
+### 1. Created SAML Client in Keycloak
 
-Created a centralized log collection folder on LINUX01.
-
-```text
-/home/linuxadmin/mission-audit-logs
-```
-
-Subfolders created:
+Created a new SAML client in the `blackscalpel` realm.
 
 ```text
-keycloak
-oauth2-proxy
-ad
+Client type: SAML
+Client ID: mission-saml-app
+Name: Mission SAML App
 ```
 
-![Audit Folder Structure](../screenshots/iam/iam-audit-linux-log-collector-folders-created.png)
+![SAML Client Created](../screenshots/iam/iam-saml-keycloak-client-created.png)
 
-### 2. Exported Keycloak and OAuth2 Proxy Logs
+### 2. Configured SAML Access Settings
 
-Exported recent logs from the Keycloak and OAuth2 Proxy Docker containers.
+Configured the SAML application URLs.
 
 ```text
-keycloak/keycloak-last24h.log
-oauth2-proxy/oauth2-proxy-last24h.log
+Root URL: http://10.0.1.4:8081
+Home URL: http://10.0.1.4:8081
+Valid redirect URIs: http://10.0.1.4:8081/*
+Master SAML Processing URL: http://10.0.1.4:8081/saml/acs
+IDP-Initiated SSO URL name: mission-saml-app
 ```
 
-![Keycloak and OAuth2 Logs Exported](../screenshots/iam/iam-audit-keycloak-oauth2-logs-exported.png)
+![SAML Access Settings](../screenshots/iam/iam-saml-access-settings-configured.png)
 
-### 3. Captured Live OAuth2 Proxy Authentication Events
+### 3. Configured SAML Capabilities and Signing
 
-Started live log collection for OAuth2 Proxy and captured the protected application access flow.
-
-Events observed:
+Configured SAML response behavior and signing.
 
 ```text
-403 = unauthenticated request blocked
-302 = redirect to Keycloak login
-AuthSuccess = user authenticated through OAuth2
-200 = protected app loaded successfully
+Name ID format: username
+Force POST binding: On
+Include AuthnStatement: On
+Sign documents: On
+Sign assertions: On
+Signature algorithm: RSA_SHA256
 ```
 
-![OAuth2 Proxy Live Auth Success](../screenshots/iam/iam-audit-oauth2-proxy-live-auth-success.png)
+![SAML Capabilities and Signing](../screenshots/iam/iam-saml-capabilities-and-signing-configured.png)
 
-### 4. Exported Active Directory Security Events
+### 4. Verified Keycloak SAML Metadata
 
-Exported Active Directory security events from DC01 into a CSV file.
+Opened the Keycloak SAML IdP metadata endpoint.
 
 ```text
-C:\MissionLab\Audit-Logs\ad-security-iam-events-last7d.csv
+http://10.0.1.4:8080/realms/blackscalpel/protocol/saml/descriptor
 ```
 
-Events included successful logons and privileged security operations.
+This metadata describes how a SAML application can trust Keycloak.
 
-![AD Security Events Exported](../screenshots/iam/iam-audit-ad-security-events-exported.png)
+![Keycloak SAML Metadata](../screenshots/iam/iam-saml-keycloak-idp-metadata-visible.png)
 
-### 5. Copied AD Events to Linux Collector
+### 5. Built SAML Test Receiver App
 
-Copied the AD security event CSV into the Linux audit collection folder.
+Created a simple Python SAML receiver on LINUX01.
 
 ```text
-/home/linuxadmin/mission-audit-logs/ad/ad-security-iam-events-last7d.csv
+App path: ~/mission-saml-app/saml_receiver.py
+Listening port: 8081
+ACS endpoint: /saml/acs
 ```
 
-![AD Events Copied to Linux](../screenshots/iam/iam-audit-ad-events-copied-to-linux-collector.png)
-
-### 6. Created Central Audit Summary
-
-Created a plain-text audit summary describing the collected log sources and evidence.
+The receiver accepts a browser POST containing `SAMLResponse`, decodes it, and saves it as:
 
 ```text
-/home/linuxadmin/mission-audit-logs/audit-summary.txt
+saml-response.xml
 ```
 
-Verified the centralized audit folder contained Keycloak, OAuth2 Proxy, AD, filtered event, and summary files.
+![SAML Test App Running](../screenshots/iam/iam-saml-test-app-running.png)
 
-![Central Log Collector Complete](../screenshots/iam/iam-audit-central-log-collector-complete.png)
+### 6. Started IdP-Initiated SAML Login
 
-### 7. Created Filtered IAM Event Report
-
-Created a filtered report for IAM-related authentication and access events.
+Opened the Keycloak IdP-initiated SAML login URL.
 
 ```text
-/home/linuxadmin/mission-audit-logs/iam-auth-events-filtered.txt
+http://10.0.1.4:8080/realms/blackscalpel/protocol/saml/clients/mission-saml-app
 ```
 
-The filtered report included login activity, blocked access, redirects, callback events, authentication success, and error evidence.
+This started the SAML login flow from Keycloak.
 
-![Filtered Auth Events Report](../screenshots/iam/iam-audit-filtered-auth-events-report.png)
+![SAML IdP Initiated Login](../screenshots/iam/iam-saml-idp-initiated-login-page.png)
 
-### 8. Created Audit Folder README
+### 7. Received SAML Response
 
-Created a README file inside the audit collection folder explaining the purpose and contents of the log collection.
+After AD-backed login and MFA, Keycloak posted the SAML response to the test application.
 
 ```text
-/home/linuxadmin/mission-audit-logs/README.md
+http://10.0.1.4:8081/saml/acs
 ```
 
-![Audit README Created](../screenshots/iam/iam-audit-log-collector-readme-created.png)
+The SAML receiver confirmed:
+
+```text
+SAML login received and saved to saml-response.xml
+```
+
+![SAML Response Received](../screenshots/iam/iam-saml-login-response-received.png)
+
+### 8. Verified SAML Assertion File
+
+Verified that the decoded SAML response was saved on LINUX01.
+
+```text
+~/mission-saml-app/saml-response.xml
+```
+
+![SAML Assertion File Created](../screenshots/iam/iam-saml-assertion-file-created.png)
+
+### 9. Created Readable Assertion Summary
+
+Extracted important fields from the SAML response into a readable summary.
+
+```text
+NameID
+Issuer
+Audience
+AuthnStatement
+Role attributes
+```
+
+![SAML Assertion Summary](../screenshots/iam/iam-saml-assertion-summary-visible.png)
 
 ## Result
 
-This phase verified the centralized IAM audit flow:
+This phase verified the SAML federation path:
 
 ```text
-Keycloak authentication logs
-→ OAuth2 Proxy access logs
-→ Active Directory Security events
-→ Linux audit collection folder
-→ filtered IAM event report
+Active Directory user
+→ Keycloak LDAP federation
+→ Keycloak SAML Identity Provider
+→ signed SAML response
+→ browser POST to ACS endpoint
+→ SAML assertion saved and reviewed
+```
+
+This confirmed that the lab supports both major federation patterns:
+
+```text
+OIDC for the protected mission app
+SAML 2.0 for the SAML test application
 ```
